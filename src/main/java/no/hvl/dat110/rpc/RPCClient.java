@@ -1,70 +1,47 @@
 package no.hvl.dat110.rpc;
 
-import no.hvl.dat110.TODO;
 import no.hvl.dat110.messaging.*;
 
 public class RPCClient {
 
-	// underlying messaging client used for RPC communication
-	private MessagingClient msgclient;
+    private MessagingClient msgclient;
+    private MessageConnection connection;
 
-	// underlying messaging connection used for RPC communication
-	private MessageConnection connection;
-	
-	public RPCClient(String server, int port) {
-	
-		msgclient = new MessagingClient(server,port);
-	}
-	
-	public void connect() {
-		
-		// TODO - START
-		// connect using the RPC client
-		
-		if (true)
-			throw new UnsupportedOperationException(TODO.method());
-		
-		// TODO - END
-	}
-	
-	public void disconnect() {
-		
-		// TODO - START
-		// disconnect by closing the underlying messaging connection
-		
-		if (true)
-			throw new UnsupportedOperationException(TODO.method());
-		
-		// TODO - END
-	}
+    public RPCClient(String server, int port) {
+        this.msgclient = new MessagingClient(server, port);
+    }
 
-	/*
-	 Make a remote call om the method on the RPC server by sending an RPC request message and receive an RPC reply message
+    public void connect() {
+        if (connection == null) {
+            connection = msgclient.connect();
+        }
+    }
 
-	 rpcid is the identifier on the server side of the method to be called
-	 param is the marshalled parameter of the method to be called
-	 */
+    public void disconnect() {
+        if (connection != null && !connection.isClosed()) {
+            System.out.println("RPCClient: Disconnecting...");
+            connection.close();
+            connection = null;
+        }
+    }
 
-	public byte[] call(byte rpcid, byte[] param) {
-		
-		byte[] returnval = null;
-		
-		// TODO - START
+    public byte[] call(byte rpcid, byte[] param) {
+        byte[] request = RPCUtils.encapsulate(rpcid, param);
 
-		/*
+        System.out.println("RPCClient: Sending request with RPC ID " + rpcid);
+        connection.send(new Message(request));
 
-		The rpcid and param must be encapsulated according to the RPC message format
+        Message response = connection.receive();
 
-		The return value from the RPC call must be decapsulated according to the RPC message format
+        if (response == null) {
+            System.out.println("RPCClient: No response received. Server might have closed connection.");
+            return new byte[0];
+        }
 
-		*/
-				
-		if (true)
-			throw new UnsupportedOperationException(TODO.method());
-		
-		// TODO - END
-		return returnval;
-		
-	}
+        System.out.println("RPCClient: Received response for RPC ID " + rpcid);
+        return RPCUtils.decapsulate(response.getData());
+    }
+
+
 
 }

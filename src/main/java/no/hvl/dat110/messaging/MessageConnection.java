@@ -3,11 +3,9 @@ package no.hvl.dat110.messaging;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
-import java.sql.SQLOutput;
-
-import no.hvl.dat110.TODO;
 
 
 public class MessageConnection {
@@ -32,40 +30,60 @@ public class MessageConnection {
 			ex.printStackTrace();
 		}
 	}
+	
+	public Socket getSocket() {
+		return socket;
+	}
 
 	public void send(Message message) {
-try {
-	byte[] data = MessageUtils.encapsulate(message);
+	    try {
+	        if (isClosed()) {
+	            System.out.println("MessageConnection: Cannot send message, socket is closed.");
+	            return;
+	        }
 
-	// TODO - START
-	// encapsulate the data contained in the Message and write to the output stream
+	        byte[] data = MessageUtils.encapsulate(message);
+	        outStream.write(data);
+	        outStream.flush();
 
-	outStream.write(data);
-	outStream.flush();
-} catch (IOException ex) {
-	System.out.println("Error, cant send message: " + ex.getMessage());
-	ex.printStackTrace();
-}
-		// TODO - END
+	        System.out.println("MessageConnection: Sent message of size " + data.length);
+	    } catch (IOException ex) {
+	        System.out.println("MessageConnection: Error sending message: " + ex.getMessage());
+	        ex.printStackTrace();
+	    }
 	}
+
 
 	public Message receive() {
+	    Message message = null;
 
-		Message message = null;
+	    try {
+	        if (isClosed()) {
+	            System.out.println("MessageConnection: Cannot receive message, socket is closed.");
+	            return null;
+	        }
 
-		try {
-			byte[] segment = new byte[MessageUtils.SEGMENTSIZE];
-			inStream.readFully(segment);
+	        byte[] segment = new byte[MessageUtils.SEGMENTSIZE];
 
-			message = MessageUtils.decapsulate(segment);
-		} catch(IOException ex) {
-			System.out.println("Error, cant recieve message " + ex.getMessage());
-			ex.printStackTrace();
-		}
-		
-		return message;
-		
+	        int bytesRead = inStream.read(segment);
+	        if (bytesRead == -1) {
+	            System.out.println("MessageConnection: Received EOF, connection closed by peer.");
+	            return null;
+	        }
+
+	        System.out.println("MessageConnection: Received " + bytesRead + " bytes.");
+	        message = MessageUtils.decapsulate(segment);
+	    } catch (EOFException ex) {
+	        System.out.println("MessageConnection: EOFException - Connection closed.");
+	        return null;
+	    } catch (IOException ex) {
+	        System.out.println("MessageConnection: IOException while receiving: " + ex.getMessage());
+	        ex.printStackTrace();
+	    }
+
+	    return message;
 	}
+
 	public void close() {
 
 		try {
@@ -81,4 +99,9 @@ try {
 			ex.printStackTrace();
 		}
 	}
+	
+	public boolean isClosed() {
+	    return socket == null || socket.isClosed();
+	}
+
 }

@@ -2,8 +2,6 @@ package no.hvl.dat110.messaging;
 
 import java.util.Arrays;
 
-import no.hvl.dat110.TODO;
-
 public class MessageUtils {
 
 	public static final int SEGMENTSIZE = 128;

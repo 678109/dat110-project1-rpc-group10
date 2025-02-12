@@ -1,86 +1,101 @@
 package no.hvl.dat110.rpc;
 
 import java.util.HashMap;
-
-import no.hvl.dat110.TODO;
-import no.hvl.dat110.messaging.MessageConnection;
-import no.hvl.dat110.messaging.Message;
-import no.hvl.dat110.messaging.MessagingServer;
+import no.hvl.dat110.messaging.*;
 
 public class RPCServer {
 
-	private MessagingServer msgserver;
-	private MessageConnection connection;
-	
-	// hashmap to register RPC methods which are required to extend RPCRemoteImpl
-	// the key in the hashmap is the RPC identifier of the method
-	private HashMap<Byte,RPCRemoteImpl> services;
-	
-	public RPCServer(int port) {
-		
-		this.msgserver = new MessagingServer(port);
-		this.services = new HashMap<Byte,RPCRemoteImpl>();
-		
-	}
-	
-	public void run() {
-		
-		// the stop RPC method is built into the server
-		RPCRemoteImpl rpcstop = new RPCServerStopImpl(RPCCommon.RPIDSTOP,this);
-		
-		System.out.println("RPC SERVER RUN - Services: " + services.size());
-			
-		connection = msgserver.accept(); 
-		
-		System.out.println("RPC SERVER ACCEPTED");
-		
-		boolean stop = false;
-		
-		while (!stop) {
-	    
-		   byte rpcid = 0;
-		   Message requestmsg, replymsg;
-		   
-		   // TODO - START
-		   // - receive a Message containing an RPC request
-		   // - extract the identifier for the RPC method to be invoked from the RPC request
-		   // - extract the method's parameter by decapsulating using the RPCUtils
-		   // - lookup the method to be invoked
-		   // - invoke the method and pass the param
-		   // - encapsulate return value 
-		   // - send back the message containing the RPC reply
-			
-		   if (true)
-				throw new UnsupportedOperationException(TODO.method());
-		   
-		   // TODO - END
+    private MessagingServer msgserver;
+    private MessageConnection connection;
+    private HashMap<Byte, RPCRemoteImpl> services;
 
-			// stop the server if it was stop methods that was called
-		   if (rpcid == RPCCommon.RPIDSTOP) {
-			   stop = true;
-		   }
-		}
-	
-	}
-	
-	// used by server side method implementations to register themselves in the RPC server
-	public void register(byte rpcid, RPCRemoteImpl impl) {
-		services.put(rpcid, impl);
-	}
-	
-	public void stop() {
+    public RPCServer(int port) {
+        this.msgserver = new MessagingServer(port);
+        this.services = new HashMap<>();
+    }
 
-		if (connection != null) {
-			connection.close();
-		} else {
-			System.out.println("RPCServer.stop - connection was null");
-		}
-		
-		if (msgserver != null) {
-			msgserver.stop();
-		} else {
-			System.out.println("RPCServer.stop - msgserver was null");
-		}
-		
-	}
+    public void run() {
+        RPCRemoteImpl rpcstop = new RPCServerStopImpl(RPCCommon.RPIDSTOP, this);
+        services.put(RPCCommon.RPIDSTOP, rpcstop);
+
+        System.out.println("RPC SERVER RUN - Services: " + services.size());
+        connection = msgserver.accept();
+
+        if (connection == null) {
+            throw new RuntimeException("Failed to accept client connection.");
+        }
+
+        System.out.println("RPC SERVER ACCEPTED");
+
+        boolean stop = false;
+
+        while (!stop) {
+            try {
+                System.out.println("RPCServer: Waiting for request...");
+                Message requestmsg = connection.receive();
+
+                if (requestmsg == null) {
+                    System.out.println("RPCServer: Received null message. Client may have disconnected.");
+                    break;
+                }
+
+                byte[] requestData = requestmsg.getData();
+                if (requestData.length == 0) {
+                    System.out.println("RPCServer: Received empty request data.");
+                    continue;
+                }
+
+                byte rpcid = requestData[0];
+                System.out.println("RPCServer: Processing RPC ID: " + rpcid);
+
+                byte[] param = RPCUtils.decapsulate(requestData);
+                RPCRemoteImpl method = services.get(rpcid);
+
+                byte[] returnValue = (method != null) ? method.invoke(param) : new byte[0];
+
+                byte[] replyData = RPCUtils.encapsulate(rpcid, returnValue);
+                Message replymsg = new Message(replyData);
+
+                if (rpcid == RPCCommon.RPIDSTOP) {
+                    System.out.println("RPCServer: Stop command received. Sending response before shutdown.");
+                    connection.send(replymsg);
+                    stop = true; // Setter stop først for å unngå at vi prøver å sende etter at vi har lukket
+                    break;
+                } else {
+                    System.out.println("RPCServer: Sending response for RPC ID: " + rpcid);
+                    connection.send(replymsg);
+                }
+            } catch (Exception e) {
+                System.out.println("RPCServer: Exception in loop.");
+                e.printStackTrace();
+                break;
+            }
+        }
+
+        System.out.println("RPCServer: Closing connection...");
+        connection.close();
+        System.out.println("RPCServer: Stopping server...");
+        stop();
+    }
+
+    public MessageConnection accept() {
+        return msgserver.accept();
+    }
+
+    public void register(byte rpcid, RPCRemoteImpl impl) {
+        services.put(rpcid, impl);
+    }
+
+    public void stop() {
+        if (connection != null) {
+            connection.close();
+        } else {
+            System.out.println("RPCServer.stop - connection was null");
+        }
+        if (msgserver != null) {
+            msgserver.stop();
+        } else {
+            System.out.println("RPCServer.stop - msgserver was null");
+        }
+    }
 }
