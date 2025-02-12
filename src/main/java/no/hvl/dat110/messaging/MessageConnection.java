@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.sql.SQLOutput;
 
 import no.hvl.dat110.TODO;
 
@@ -33,37 +34,38 @@ public class MessageConnection {
 	}
 
 	public void send(Message message) {
+try {
+	byte[] data = MessageUtils.encapsulate(message);
 
-		byte[] data;
-		
-		// TODO - START
-		// encapsulate the data contained in the Message and write to the output stream
-		
-		if (true)
-			throw new UnsupportedOperationException(TODO.method());
-			
+	// TODO - START
+	// encapsulate the data contained in the Message and write to the output stream
+
+	outStream.write(data);
+	outStream.flush();
+} catch (IOException ex) {
+	System.out.println("Error, cant send message: " + ex.getMessage());
+	ex.printStackTrace();
+}
 		// TODO - END
-
 	}
 
 	public Message receive() {
 
 		Message message = null;
-		byte[] data;
-		
-		// TODO - START
-		// read a segment from the input stream and decapsulate data into a Message
-		
-		if (true)
-			throw new UnsupportedOperationException(TODO.method());
-		
-		// TODO - END
+
+		try {
+			byte[] segment = new byte[MessageUtils.SEGMENTSIZE];
+			inStream.readFully(segment);
+
+			message = MessageUtils.decapsulate(segment);
+		} catch(IOException ex) {
+			System.out.println("Error, cant recieve message " + ex.getMessage());
+			ex.printStackTrace();
+		}
 		
 		return message;
 		
 	}
-
-	// close the connection by closing streams and the underlying socket	
 	public void close() {
 
 		try {

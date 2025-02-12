@@ -13,18 +13,17 @@ public class MessageUtils {
 
 	public static byte[] encapsulate(Message message) {
 		
-		byte[] segment = null;
-		byte[] data;
+		byte[] segment = new byte[SEGMENTSIZE];
+		byte[] data = message.getData();
+
+		if(data.length > 127) {
+			throw new IllegalArgumentException("Message is to long");
+		}
 		
-		// TODO - START
-		
-		// encapulate/encode the payload data of the message and form a segment
-		// according to the segment format for the messaging layer
-		
-		if (true)
-			throw new UnsupportedOperationException(TODO.method());
-			
-		// TODO - END
+		segment[0] = (byte) data.length;
+
+		System.arraycopy(data, 0, segment, 1, data.length);
+
 		return segment;
 		
 	}
@@ -33,15 +32,11 @@ public class MessageUtils {
 
 		Message message = null;
 		
-		// TODO - START
-		// decapsulate segment and put received payload data into a message
+		int length = segment[0];
+
+		byte[] data = Arrays.copyOfRange(segment, 1, 1 + length);
 		
-		if (true)
-			throw new UnsupportedOperationException(TODO.method());
-		
-		// TODO - END
-		
-		return message;
+		return new Message(data);
 		
 	}
 	
