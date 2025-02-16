@@ -10,9 +10,9 @@ import java.net.Socket;
 
 public class MessageConnection {
 
-	private DataOutputStream outStream; // for writing bytes to the underlying TCP connection
-	private DataInputStream inStream; // for reading bytes from the underlying TCP connection
-	private Socket socket; // socket for the underlying TCP connection
+	private DataOutputStream outStream; 
+	private DataInputStream inStream; 
+	private Socket socket;
 	
 	public MessageConnection(Socket socket) {
 
@@ -46,7 +46,7 @@ public class MessageConnection {
 	        outStream.write(data);
 	        outStream.flush();
 
-	        System.out.println("MessageConnection: Sent message of size " + data.length);
+	        System.out.println("MessageConnection: Sent message of " + data.length + " bytes");
 	    } catch (IOException ex) {
 	        System.out.println("MessageConnection: Error sending message: " + ex.getMessage());
 	        ex.printStackTrace();

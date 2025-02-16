@@ -31,7 +31,6 @@ public class RPCUtils {
 	}
 	
 	public static void unmarshallVoid(byte[] data) {
-		// No action needed for void return type
 	}
 
 	public static byte[] marshallBoolean(boolean b) {

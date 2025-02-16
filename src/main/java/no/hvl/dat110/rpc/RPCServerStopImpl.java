@@ -9,7 +9,7 @@ public class RPCServerStopImpl extends RPCRemoteImpl {
 	public byte[] invoke(byte[] param) {
 		RPCUtils.unmarshallVoid(param);
 		byte[] returnval = RPCUtils.marshallVoid();
-		getRpcserver().stop(); // Stop the server
+		getRpcserver().stop(); 
 		return returnval;
 	}
 }

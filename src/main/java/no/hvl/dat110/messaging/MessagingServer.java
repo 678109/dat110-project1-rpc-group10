@@ -6,7 +6,6 @@ import java.net.Socket;
 
 public class MessagingServer {
 
-	// server-side socket for accepting incoming TCP connections
 	private ServerSocket welcomeSocket;
 
 	public MessagingServer(int port) {
@@ -21,8 +20,6 @@ public class MessagingServer {
 			ex.printStackTrace();
 		}
 	}
-
-	// accept an incoming connection from a client
 	public MessageConnection accept() {
 
 		MessageConnection connection = null;

@@ -59,7 +59,7 @@ public class RPCServer {
                 if (rpcid == RPCCommon.RPIDSTOP) {
                     System.out.println("RPCServer: Stop command received. Sending response before shutdown.");
                     connection.send(replymsg);
-                    stop = true; // Setter stop først for å unngå at vi prøver å sende etter at vi har lukket
+                    stop = true;
                     break;
                 } else {
                     System.out.println("RPCServer: Sending response for RPC ID: " + rpcid);

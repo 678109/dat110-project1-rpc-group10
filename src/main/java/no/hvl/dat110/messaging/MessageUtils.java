@@ -15,7 +15,7 @@ public class MessageUtils {
 		byte[] data = message.getData();
 
 		if(data.length > 127) {
-			throw new IllegalArgumentException("Message is to long");
+			throw new IllegalArgumentException("Message is too long");
 		}
 		
 		segment[0] = (byte) data.length;
